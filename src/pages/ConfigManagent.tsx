@@ -206,7 +206,7 @@ const ConfigManagent = () => {
                 htmlFor="sender-number"
                 className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
               >
-                Sender Email
+                Sender Phone Number
               </label>
               <input
                 type="number"
