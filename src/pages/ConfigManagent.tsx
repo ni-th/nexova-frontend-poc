@@ -6,7 +6,7 @@ import Swal from "sweetalert2";
 interface DBConfig {
   host: string;
   username: string;
-  port: number;
+  port: number | null;
   password: string;
   databaseName: string;
 }
@@ -14,7 +14,7 @@ const ConfigManagent: React.FC = () => {
   const [dbConfig, setDbConfig] = useState<DBConfig>({
     host: "",
     username: "",
-    port: 0,
+    port: null,
     password: "",
     databaseName: "",
   });
@@ -37,14 +37,14 @@ const ConfigManagent: React.FC = () => {
       );
       console.log("Config sent:", response.data);
       Swal.fire({
-        title: "DB Configurations saved successfully !",
+        title: "DB configurations saved successfully !",
         icon: "success",
         draggable: true,
       });
     } catch (error) {
       console.error("Error sending config:", error);
       Swal.fire({
-        title: "DB Configurations not saved !",
+        title: "DB configurations not saved !",
         icon: "error",
         draggable: true,
       });
@@ -116,7 +116,7 @@ const ConfigManagent: React.FC = () => {
                 Port
               </label>
               <input
-                value={dbConfig.port}
+                value={dbConfig.port ?? ""}
                 onChange={handleChange}
                 type="number"
                 id="port"
