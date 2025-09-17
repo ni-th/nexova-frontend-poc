@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { FaAngleDown } from "react-icons/fa6";
 import axios from "axios";
+import Swal from "sweetalert2";
 
-interface DBConfig{
+interface DBConfig {
   host: string;
   username: string;
   port: number;
@@ -10,7 +11,7 @@ interface DBConfig{
   databaseName: string;
 }
 const ConfigManagent: React.FC = () => {
-  const[dbConfig, setDbConfig] = useState<DBConfig>({
+  const [dbConfig, setDbConfig] = useState<DBConfig>({
     host: "",
     username: "",
     port: 0,
@@ -21,23 +22,36 @@ const ConfigManagent: React.FC = () => {
   // Handle input changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
-    setDbConfig((prev) => ({...prev,[id]: id === "port" ? Number(value) : value,}));
+    setDbConfig((prev) => ({
+      ...prev,
+      [id]: id === "port" ? Number(value) : value,
+    }));
   };
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await axios.post("http://localhost:8080/config/db/add", dbConfig);
+      const response = await axios.post(
+        "http://localhost:8080/config/db/add",
+        dbConfig
+      );
       console.log("Config sent:", response.data);
-      alert("Configuration saved successfully!");
+      Swal.fire({
+        title: "DB Configurations saved successfully !",
+        icon: "success",
+        draggable: true,
+      });
     } catch (error) {
       console.error("Error sending config:", error);
-      alert("Failed to save configuration!");
+      Swal.fire({
+        title: "DB Configurations not saved !",
+        icon: "error",
+        draggable: true,
+      });
     }
   };
   return (
     <div id="accordion-collapse" data-accordion="collapse" className="ms-2">
-      
       <h2 id="accordion-collapse-heading-1">
         <button
           type="button"
@@ -55,7 +69,10 @@ const ConfigManagent: React.FC = () => {
         className="hidden"
         aria-labelledby="accordion-collapse-heading-1"
       >
-        <form onSubmit={handleSubmit} className="p-5 border border-b-0 border-gray-200 dark:border-gray-700 dark:bg-gray-900">
+        <form
+          onSubmit={handleSubmit}
+          className="p-5 border border-b-0 border-gray-200 dark:border-gray-700 dark:bg-gray-900"
+        >
           <div className="grid gap-6 mb-6 md:grid-cols-2">
             <div>
               <label
@@ -82,7 +99,7 @@ const ConfigManagent: React.FC = () => {
                 User Name
               </label>
               <input
-               value={dbConfig.username}
+                value={dbConfig.username}
                 onChange={handleChange}
                 type="text"
                 id="username"
@@ -99,8 +116,8 @@ const ConfigManagent: React.FC = () => {
                 Port
               </label>
               <input
-              value={dbConfig.port}
-          onChange={handleChange}
+                value={dbConfig.port}
+                onChange={handleChange}
                 type="number"
                 id="port"
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
@@ -116,8 +133,8 @@ const ConfigManagent: React.FC = () => {
                 Password
               </label>
               <input
-              value={dbConfig.password}
-          onChange={handleChange}
+                value={dbConfig.password}
+                onChange={handleChange}
                 type="password"
                 id="password"
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
@@ -132,8 +149,8 @@ const ConfigManagent: React.FC = () => {
                 Database
               </label>
               <input
-              value={dbConfig.databaseName}
-          onChange={handleChange}
+                value={dbConfig.databaseName}
+                onChange={handleChange}
                 type="text"
                 id="databaseName"
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
@@ -181,7 +198,6 @@ const ConfigManagent: React.FC = () => {
                 type="text"
                 id="api-key"
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                
                 required
               />
             </div>
@@ -196,7 +212,6 @@ const ConfigManagent: React.FC = () => {
                 type="email"
                 id="sender-email"
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                
                 required
               />
             </div>
@@ -240,7 +255,6 @@ const ConfigManagent: React.FC = () => {
                 type="text"
                 id="sms-api-key"
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                
                 required
               />
             </div>
@@ -255,7 +269,6 @@ const ConfigManagent: React.FC = () => {
                 type="number"
                 id="sender-number"
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                
                 required
               />
             </div>
