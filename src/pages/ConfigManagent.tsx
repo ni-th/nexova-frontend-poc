@@ -1,8 +1,43 @@
-import React from "react";
+import React, { useState } from "react";
 import { FaAngleDown } from "react-icons/fa6";
-const ConfigManagent = () => {
+import axios from "axios";
+
+interface DBConfig{
+  host: string;
+  username: string;
+  port: number;
+  password: string;
+  databaseName: string;
+}
+const ConfigManagent: React.FC = () => {
+  const[dbConfig, setDbConfig] = useState<DBConfig>({
+    host: "",
+    username: "",
+    port: 0,
+    password: "",
+    databaseName: "",
+  });
+
+  // Handle input changes
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value } = e.target;
+    setDbConfig((prev) => ({...prev,[id]: id === "port" ? Number(value) : value,}));
+  };
+  // Handle form submission
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const response = await axios.post("http://localhost:8080/config/db/add", dbConfig);
+      console.log("Config sent:", response.data);
+      alert("Configuration saved successfully!");
+    } catch (error) {
+      console.error("Error sending config:", error);
+      alert("Failed to save configuration!");
+    }
+  };
   return (
     <div id="accordion-collapse" data-accordion="collapse" className="ms-2">
+      
       <h2 id="accordion-collapse-heading-1">
         <button
           type="button"
@@ -20,7 +55,7 @@ const ConfigManagent = () => {
         className="hidden"
         aria-labelledby="accordion-collapse-heading-1"
       >
-        <form className="p-5 border border-b-0 border-gray-200 dark:border-gray-700 dark:bg-gray-900">
+        <form onSubmit={handleSubmit} className="p-5 border border-b-0 border-gray-200 dark:border-gray-700 dark:bg-gray-900">
           <div className="grid gap-6 mb-6 md:grid-cols-2">
             <div>
               <label
@@ -30,25 +65,29 @@ const ConfigManagent = () => {
                 Host
               </label>
               <input
+                value={dbConfig.host}
+                onChange={handleChange}
                 type="text"
                 id="host"
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                placeholder="John"
+                placeholder="localhost"
                 required
               />
             </div>
             <div>
               <label
-                htmlFor="userName"
+                htmlFor="username"
                 className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
               >
                 User Name
               </label>
               <input
+               value={dbConfig.username}
+                onChange={handleChange}
                 type="text"
-                id="userName"
+                id="username"
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                placeholder="Doe"
+                placeholder="doe"
                 required
               />
             </div>
@@ -60,10 +99,12 @@ const ConfigManagent = () => {
                 Port
               </label>
               <input
+              value={dbConfig.port}
+          onChange={handleChange}
                 type="number"
                 id="port"
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                placeholder="Flowbite"
+                placeholder="3306"
                 required
               />
             </div>
@@ -75,26 +116,28 @@ const ConfigManagent = () => {
                 Password
               </label>
               <input
+              value={dbConfig.password}
+          onChange={handleChange}
                 type="password"
                 id="password"
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                placeholder="123-45-678"
-                pattern="[0-9]{3}-[0-9]{2}-[0-9]{3}"
                 required
               />
             </div>
             <div>
               <label
-                htmlFor="databasename"
+                htmlFor="databaseName"
                 className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
               >
                 Database
               </label>
               <input
+              value={dbConfig.databaseName}
+          onChange={handleChange}
                 type="text"
-                id="databasename"
+                id="databaseName"
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                placeholder="flowbite.com"
+                placeholder="mydb"
                 required
               />
             </div>
