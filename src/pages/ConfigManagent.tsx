@@ -62,6 +62,7 @@ const ConfigManagent: React.FC = () => {
         config[type]
       );
       console.log("Config sent:", response.data);
+      fetchData();
       Swal.fire({
         title: `${type} configurations saved successfully !`,
         icon: "success",
