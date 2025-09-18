@@ -16,19 +16,17 @@ const App = () => {
   }, [location]);
   return (
     <>
-      <div className="dark:bg-gray-700 h-screen rubik">
-        <AppNavbar />
-        <div className="flex m-2">
-          <div className="w-64 flex-none h-full">
-            <AppSideBar />
-          </div>
-          <div className="w-64 flex-1">
-            <Routes>
-              <Route path="/config" element={<ConfigManagent />}></Route>
-              <Route path="/user-management" element={<UserManagement />}></Route>
-              <Route path="/security" element={<SecurityManagement />}></Route>
-            </Routes>
-          </div>
+      <AppNavbar />
+      <div className="flex m-2">
+        <div className="w-64 flex-none h-full">
+          <AppSideBar />
+        </div>
+        <div className="w-64 flex-1">
+          <Routes>
+            <Route path="/config" element={<ConfigManagent />}></Route>
+            <Route path="/user-management" element={<UserManagement />}></Route>
+            <Route path="/security" element={<SecurityManagement />}></Route>
+          </Routes>
         </div>
       </div>
     </>
