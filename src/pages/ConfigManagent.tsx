@@ -7,34 +7,13 @@ import { Loader } from "../components/Loader";
 
 const ConfigManagent: React.FC = () => {
   // useStates
+  const [submitError, setSubmitError] = useState<Record<string, string>>({});
+
   const [config, setConfig] = useState({
     db: { host: "", username: "", port: null, password: "", databaseName: "" },
     email: { api_key: "", sender_email: "" },
     sms: { api_key: "", sender_phone: "" },
   });
-
-  const [data, setData] = useState<DBConfig[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-
-  const fetchData = async () => {
-    setLoading(true); // start loading
-    setError(null); // clear previous errors
-    try {
-      const response = await axios.get<DBConfig[]>(
-        "http://localhost:8080/config/db/find-all"
-      );
-      setData(response.data);
-    } catch (err) {
-      setError(err.message || "Something went wrong");
-    } finally {
-      setLoading(false); // stop loading
-    }
-  };
-
-  useEffect(() => {
-    fetchData(); // fetch data when page loads
-  }, []);
 
   //  input changes
   const handleChange = (
@@ -63,21 +42,57 @@ const ConfigManagent: React.FC = () => {
         config[type]
       );
       console.log("Config sent:", response.data);
-      fetchData();
+      fetchData();// fetch added data when submit the button
+      setSubmitError({});// set submit alert to initial state when submit this form
       Swal.fire({
         title: `${type} configurations saved successfully !`,
         icon: "success",
         draggable: true,
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error sending config:", error);
+
+      setSubmitError({ General: "Unknown error occurred." });
+      if (
+        error.response &&
+        error.response.data &&
+        typeof error.response.data === "object"
+      ) {
+        setSubmitError(error.response.data);
+      }
+
       Swal.fire({
-        title: `${type} configurations not saved !`,
+        title: `${type} configurations not saved!`,
         icon: "error",
         draggable: true,
       });
     }
   };
+
+  // show table data
+  const [data, setData] = useState<DBConfig[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const fetchData = async () => {
+    setLoading(true); // start loading
+    setError(null); // clear previous errors
+    try {
+      const response = await axios.get<DBConfig[]>(
+        "http://localhost:8080/config/db/find-all"
+      );
+      setData(response.data);
+    } catch (err:any) {
+      setError(err.message || "Something went wrong");
+    } finally {
+      setLoading(false); // stop loading
+    }
+  };
+
+  useEffect(() => {
+    fetchData(); // fetch data when page loads
+  }, []);
+
   return (
     <div id="accordion-collapse" data-accordion="collapse" className="ms-2">
       <h2 id="accordion-collapse-heading-1">
@@ -149,6 +164,8 @@ const ConfigManagent: React.FC = () => {
                   className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                   placeholder="3306"
                   required
+                  min={1024}
+                  max={65535}
                 />
               </div>
               <div>
@@ -165,6 +182,7 @@ const ConfigManagent: React.FC = () => {
                   id="password"
                   className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                   required
+                  minLength={8}
                 />
               </div>
               <div>
@@ -192,9 +210,21 @@ const ConfigManagent: React.FC = () => {
               Submit
             </button>
           </form>
-          {loading && (
-            <Loader/>
+          {Object.values(submitError).length > 0 && (
+            <div
+              className="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400"
+              role="alert"
+            >
+              <ul>
+                {Object.values(submitError).map((v, i) => (
+                  <li key={i}>
+                    <span className="font-medium">{v}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
+          {loading && <Loader />}
           {error && (
             <div
               className="p-4 mb-4 text-sm text-yellow-800 rounded-lg bg-yellow-50 dark:bg-gray-800 dark:text-yellow-300"
