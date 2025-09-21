@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { FaAngleDown } from "react-icons/fa6";
 import axios from "axios";
 import Swal from "sweetalert2";
-import type { DBConfig } from "../types/config";
+import type { DBConfig, EmailConfig, SmsConfig } from "../types/config";
 import { Loader } from "../components/Loader";
 
 const ConfigManagent: React.FC = () => {
@@ -15,6 +15,19 @@ const ConfigManagent: React.FC = () => {
     sms: { api_key: "", sender_phone: "" },
   });
 
+  // show db table data
+  const [dbData, setDbData] = useState<DBConfig[]>([]);
+  const [dbLoading, setDbLoading] = useState(false);
+  const [dbError, setDbError] = useState<string | null>(null);
+
+  // const [smsData, setSmsData] = useState<SmsConfig[]>([]);
+  // const [smsLoading, setSmsLoading] = useState(false);
+  // const [smsError, setSmsError] = useState<string | null>(null);
+
+  // const [emailData, setEmailData] = useState<EmailConfig[]>([]);
+  // const [emailLoading, setEmailLoading] = useState(false);
+  // const [emailError, setEmailError] = useState<string | null>(null);
+
   //  input changes
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -23,10 +36,7 @@ const ConfigManagent: React.FC = () => {
     const { id, value } = e.target;
     setConfig((prev) => ({
       ...prev,
-      [type]: {
-        ...prev[type],
-        [id]: id === "port" ? Number(value) : value,
-      },
+      [type]: { ...prev[type], [id]: id === "port" ? Number(value) : value },
     }));
   };
 
@@ -42,23 +52,39 @@ const ConfigManagent: React.FC = () => {
         config[type]
       );
       console.log("Config sent:", response.data);
-      fetchData();// fetch added data when submit the button
-      setSubmitError({});// set submit alert to initial state when submit this form
+      fetchData(); // fetch added data when submit the button
+      // setDbData((prev) => [...prev, config[type] as DBConfig]);
+      setSubmitError({}); // set submit alert to initial state when submit this form
       Swal.fire({
         title: `${type} configurations saved successfully !`,
         icon: "success",
         draggable: true,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error sending config:", error);
 
-      setSubmitError({ General: "Unknown error occurred." });
-      if (
-        error.response &&
-        error.response.data &&
-        typeof error.response.data === "object"
-      ) {
-        setSubmitError(error.response.data);
+      let errorMessage = "An unknown error occurred.";
+
+      if (axios.isAxiosError(error)) {
+        if (!error.response) {
+          errorMessage = "Network error. Please check your connection.";
+          setSubmitError({ General: errorMessage });
+        } else {
+          const data = error.response.data;
+
+          if (data && typeof data === "object") {
+            // If backend sends { message: "...error..." }
+            if ("message" in data && typeof data.message === "string") {
+              errorMessage = data.message;
+              setSubmitError({ General: errorMessage });
+            } else {
+              setSubmitError(data as Record<string, string>);
+            }
+          }
+        }
+      } else {
+        errorMessage = "Unexpected error occurred. Please try again.";
+        setSubmitError({ General: errorMessage });
       }
 
       Swal.fire({
@@ -69,29 +95,93 @@ const ConfigManagent: React.FC = () => {
     }
   };
 
-  // show table data
-  const [data, setData] = useState<DBConfig[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-
   const fetchData = async () => {
-    setLoading(true); // start loading
-    setError(null); // clear previous errors
+    setDbLoading(true); // start loading
+    setDbError(null); // clear previous errors
     try {
       const response = await axios.get<DBConfig[]>(
         "http://localhost:8080/config/db/find-all"
       );
-      setData(response.data);
-    } catch (err:any) {
-      setError(err.message || "Something went wrong");
+      setDbData(response.data);
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        const errorMessage = "An unknown error occurred.";
+        if (!err.response) {
+          setDbError("Network error: server not reachable");
+        } else {
+          const data = err.response.data;
+          if (data && typeof data === "object") {
+            if ("message" in data && typeof data.message === "string") {
+              setDbError(data.message);
+            } else {
+              setDbError(data as string);
+            }
+          } else {
+            setDbError(errorMessage);
+          }
+        }
+      }
     } finally {
-      setLoading(false); // stop loading
+      setDbLoading(false); // stop loading
     }
   };
 
   useEffect(() => {
     fetchData(); // fetch data when page loads
   }, []);
+
+  const handleDelete = async (id: number | undefined) => {
+    console.log(dbData);
+    try {
+      const response = await axios.delete(
+        `http://localhost:8080/config/db/delete/${id}`
+      );
+      setDbData((prevData) => prevData.filter((item) => item.id !== id));
+      if (response.status === 202) {
+        Swal.fire({
+          title: "Database deleted",
+          icon: "success",
+        });
+      }
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const errorMessage = "An unknown error occurred.";
+        if (!error.response) {
+          Swal.fire({
+            title: `Network error: server not reachable`,
+            icon: "error",
+          });
+        } else {
+          const data = error.response.data;
+          if (data && typeof data === "object") {
+            if ("message" in data && typeof data.message === "string") {
+              Swal.fire({
+                title: data.message,
+                icon: "error",
+              });
+            } else {
+              Swal.fire({
+                title: "Db not deleted",
+                icon: "error",
+              });
+            }
+          } else {
+            Swal.fire({
+              title: errorMessage,
+              icon: "error",
+            });
+          }
+        }
+      } else {
+        Swal.fire({
+          title: "Unexpected error occurred. Please try again.",
+          icon: "error",
+        });
+      }
+    }
+  };
+
+  //delete db data
 
   return (
     <div id="accordion-collapse" data-accordion="collapse" className="ms-2">
@@ -224,16 +314,16 @@ const ConfigManagent: React.FC = () => {
               </ul>
             </div>
           )}
-          {loading && <Loader />}
-          {error && (
+          {dbLoading && <Loader />}
+          {dbError && (
             <div
               className="p-4 mb-4 text-sm text-yellow-800 rounded-lg bg-yellow-50 dark:bg-gray-800 dark:text-yellow-300"
               role="alert"
             >
-              <span className="font-medium">Error: </span> {error}
+              <span className="font-medium">Error: </span> {dbError}
             </div>
           )}
-          {data.length > 0 && (
+          {dbData.length > 0 && (
             <div className="relative overflow-x-auto mt-4">
               <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
                 <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
@@ -250,10 +340,13 @@ const ConfigManagent: React.FC = () => {
                     <th scope="col" className="px-6 py-3">
                       Username
                     </th>
+                    <th scope="col" className="px-6 py-3">
+                      Action
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {data.map((item) => (
+                  {dbData.map((item) => (
                     <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200">
                       <th
                         scope="row"
@@ -264,6 +357,15 @@ const ConfigManagent: React.FC = () => {
                       <td className="px-6 py-4">{item.host}</td>
                       <td className="px-6 py-4">{item.port}</td>
                       <td className="px-6 py-4">{item.username}</td>
+                      <td className="px-6 pt-2">
+                        <button
+                          type="button"
+                          className="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900"
+                          onClick={() => handleDelete(item.id)}
+                        >
+                          Delete
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
