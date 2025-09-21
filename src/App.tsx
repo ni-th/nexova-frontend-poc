@@ -23,6 +23,7 @@ const App = () => {
         </div>
         <div className="w-64 flex-1">
           <Routes>
+            <Route path="/" element={<ConfigManagent />}></Route>
             <Route path="/config" element={<ConfigManagent />}></Route>
             <Route path="/user-management" element={<UserManagement />}></Route>
             <Route path="/security" element={<SecurityManagement />}></Route>
