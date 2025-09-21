@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { FaAngleDown } from "react-icons/fa6";
+import { FaAngleDown, FaMagnifyingGlass } from "react-icons/fa6";
 import axios from "axios";
 import Swal from "sweetalert2";
 import type { DBConfig, EmailConfig, SmsConfig } from "../types/config";
@@ -17,6 +17,7 @@ const ConfigManagent: React.FC = () => {
 
   // show db table data
   const [dbData, setDbData] = useState<DBConfig[]>([]);
+  const [dbDataFiltered, setDbDataFiltered] = useState<DBConfig[]>([]);
   const [dbLoading, setDbLoading] = useState(false);
   const [dbError, setDbError] = useState<string | null>(null);
 
@@ -103,6 +104,7 @@ const ConfigManagent: React.FC = () => {
         "http://localhost:8080/config/db/find-all"
       );
       setDbData(response.data);
+      setDbDataFiltered(response.data)
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
         const errorMessage = "An unknown error occurred.";
@@ -127,7 +129,7 @@ const ConfigManagent: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchData(); // fetch data when page loads
+    fetchData();// fetch data when page loads
   }, []);
 
   const handleDelete = async (id: number | undefined) => {
@@ -136,7 +138,7 @@ const ConfigManagent: React.FC = () => {
       const response = await axios.delete(
         `http://localhost:8080/config/db/delete/${id}`
       );
-      setDbData((prevData) => prevData.filter((item) => item.id !== id));
+      setDbDataFiltered((prevData) => prevData.filter((item) => item.id !== id));
       if (response.status === 202) {
         Swal.fire({
           title: "Database deleted",
@@ -181,7 +183,13 @@ const ConfigManagent: React.FC = () => {
     }
   };
 
-  //delete db data
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setDbDataFiltered(
+      dbData.filter((item) =>
+        item.databaseName.toLowerCase().includes(e.target.value.toLowerCase())
+      )
+    );
+  };
 
   return (
     <div id="accordion-collapse" data-accordion="collapse" className="ms-2">
@@ -323,54 +331,70 @@ const ConfigManagent: React.FC = () => {
               <span className="font-medium">Error: </span> {dbError}
             </div>
           )}
-          {dbData.length > 0 && (
-            <div className="relative overflow-x-auto mt-4">
-              <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-                <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-                  <tr>
-                    <th scope="col" className="px-6 py-3">
-                      Database
-                    </th>
-                    <th scope="col" className="px-6 py-3">
-                      Host
-                    </th>
-                    <th scope="col" className="px-6 py-3">
-                      Port
-                    </th>
-                    <th scope="col" className="px-6 py-3">
-                      Username
-                    </th>
-                    <th scope="col" className="px-6 py-3">
-                      Action
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {dbData.map((item) => (
-                    <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200">
-                      <th
-                        scope="row"
-                        className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
-                      >
-                        {item.databaseName}
-                      </th>
-                      <td className="px-6 py-4">{item.host}</td>
-                      <td className="px-6 py-4">{item.port}</td>
-                      <td className="px-6 py-4">{item.username}</td>
-                      <td className="px-6 pt-2">
-                        <button
-                          type="button"
-                          className="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900"
-                          onClick={() => handleDelete(item.id)}
-                        >
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+
+          <div className="relative">
+            <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+              <FaMagnifyingGlass />
             </div>
+            <input
+              onChange={(e) => handleSearch(e)}
+              type="text"
+              id="db-search"
+              className="block w-full p-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+              placeholder="Search db"
+              required
+            />
+          </div>
+          {dbDataFiltered.length > 0 && (
+            <>
+              <div className="relative overflow-x-auto mt-4">
+                <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                  <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                    <tr>
+                      <th scope="col" className="px-6 py-3">
+                        Database
+                      </th>
+                      <th scope="col" className="px-6 py-3">
+                        Host
+                      </th>
+                      <th scope="col" className="px-6 py-3">
+                        Port
+                      </th>
+                      <th scope="col" className="px-6 py-3">
+                        Username
+                      </th>
+                      <th scope="col" className="px-6 py-3">
+                        Action
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {dbDataFiltered.map((item) => (
+                      <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200">
+                        <th
+                          scope="row"
+                          className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
+                        >
+                          {item.databaseName}
+                        </th>
+                        <td className="px-6 py-4">{item.host}</td>
+                        <td className="px-6 py-4">{item.port}</td>
+                        <td className="px-6 py-4">{item.username}</td>
+                        <td className="px-6 pt-2">
+                          <button
+                            type="button"
+                            className="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900"
+                            onClick={() => handleDelete(item.id)}
+                          >
+                            Delete
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
         </div>
       </div>
