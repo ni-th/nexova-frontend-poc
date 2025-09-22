@@ -19,7 +19,7 @@ const App = () => {
         <div className="w-64 flex-none h-full">
           <AppSideBar />
         </div>
-        <div className="w-150 flex-initial  min-w-80">
+        <div className="w-200 flex-initial  min-w-80">
           <Routes>
             <Route path="/" element={<ConfigManagent />}></Route>
             <Route path="/config" element={<ConfigManagent />}></Route>
