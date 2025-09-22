@@ -14,7 +14,6 @@ const ConfigManagent: React.FC = () => {
     email: { api_key: "", sender_email: "" },
     sms: { api_key: "", sender_phone: "" },
   });
-  console.log(config);
   // show db table data
   const [dbData, setDbData] = useState<DBConfig[]>([]);
   const [dbDataFiltered, setDbDataFiltered] = useState<DBConfig[]>([]);
@@ -133,6 +132,9 @@ const ConfigManagent: React.FC = () => {
       setDbDataFiltered((prevData) =>
         prevData.filter((item) => item.id !== id)
       );
+      setDbData((prevData) =>
+        prevData.filter((item) => item.id !== id)
+      );
       if (response.status === 202) {
         Swal.fire({
           title: "Database deleted",
@@ -187,20 +189,15 @@ const ConfigManagent: React.FC = () => {
 
   return (
     <>
-      {Object.values(submitError).length > 0 && (
-        <div
-          className="p-4 ms-2 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400"
-          role="alert"
-        >
-          <ul>
-            {Object.values(submitError).map((v, i) => (
-              <li key={i}>
-                <span className="font-medium">{v}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+      {Object.values(submitError).length > 0 &&
+        Object.entries(submitError).map(([key,value]) => (
+          <div
+            className="p-4 ms-2 mb-1 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400"
+            role="alert"
+          >
+            <span className="font-medium">{key} : </span>{value}
+          </div>
+        ))}
       <div id="accordion-collapse" data-accordion="collapse" className="ms-2">
         <h2 id="accordion-collapse-heading-1">
           <button
@@ -235,7 +232,7 @@ const ConfigManagent: React.FC = () => {
                     type="text"
                     id="host"
                     className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                    placeholder="localhost"
+                    placeholder="http://localhost"
                     required
                   />
                 </div>
@@ -317,7 +314,11 @@ const ConfigManagent: React.FC = () => {
                 Submit
               </button>
             </form>
-            {dbLoading && <Loader />}
+            {dbLoading && (
+              <div className="m-2">
+                <Loader />
+              </div>
+            )}
             {dbError && (
               <div
                 className="p-4 mb-4 text-sm text-yellow-800 rounded-lg bg-yellow-50 dark:bg-gray-800 dark:text-yellow-300"

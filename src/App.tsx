@@ -21,6 +21,7 @@ const App = () => {
         </div>
         <div className="w-150 flex-initial  min-w-80">
           <Routes>
+            <Route path="/" element={<ConfigManagent />}></Route>
             <Route path="/config" element={<ConfigManagent />}></Route>
             <Route path="/user-management" element={<UserManagement />}></Route>
             <Route path="/security" element={<SecurityManagement />}></Route>
