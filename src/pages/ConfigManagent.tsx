@@ -6,6 +6,7 @@ import type { DBConfig } from "../types/config";
 import { Loader } from "../components/Loader";
 
 const ConfigManagent: React.FC = () => {
+  const VITE_API_URL = import.meta.env.VITE_API_URL;
   // useStates
   const [submitError, setSubmitError] = useState<Record<string, string>>({});
 
@@ -38,15 +39,18 @@ const ConfigManagent: React.FC = () => {
     type: "db" | "email" | "sms"
   ) => {
     e.preventDefault();
+    
+ // set submit alert to initial state when submit this form
+    setSubmitError({});
     try {
+
       const response = await axios.post(
-        `http://localhost:8080/config/${type}/add`,
+        `${VITE_API_URL}/config/${type}/add`,
         config[type]
       );
       console.log("Config sent:", response.data);
       fetchData(); // fetch added data when submit the button
       // setDbData((prev) => [...prev, config[type] as DBConfig]);
-      setSubmitError({}); // set submit alert to initial state when submit this form
       Swal.fire({
         title: `${type} configurations saved successfully !`,
         icon: "success",
@@ -92,7 +96,7 @@ const ConfigManagent: React.FC = () => {
     setDbError(null); // clear previous errors
     try {
       const response = await axios.get<DBConfig[]>(
-        "http://localhost:8080/config/db/find-all"
+        `${VITE_API_URL}/config/db/find-all`
       );
       setDbData(response.data);
       setDbDataFiltered(response.data);
@@ -123,11 +127,12 @@ const ConfigManagent: React.FC = () => {
     fetchData(); // fetch data when page loads
   }, []);
 
+  
   const handleDelete = async (id: number | undefined) => {
     console.log(dbData);
     try {
       const response = await axios.delete(
-        `http://localhost:8080/config/db/delete/${id}`
+        `${VITE_API_URL}/config/db/delete/${id}`
       );
       setDbDataFiltered((prevData) =>
         prevData.filter((item) => item.id !== id)
