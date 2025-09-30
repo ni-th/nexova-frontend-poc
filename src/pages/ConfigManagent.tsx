@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { FaAngleDown, FaMagnifyingGlass } from "react-icons/fa6";
 import axios from "axios";
 import Swal from "sweetalert2";
-import type { DBConfig, PagedResponse } from "../types/config";
+import type { DBConfig } from "../types/config";
 import { Loader } from "../components/Loader";
 
 const ConfigManagent: React.FC = () => {
@@ -17,15 +17,16 @@ const ConfigManagent: React.FC = () => {
   });
   // show db table data
   const [dbData, setDbData] = useState<DBConfig[]>([]);
+  const [dbAllData, setAllDbData] = useState<DBConfig[]>([]);
   const [dbDataFiltered, setDbDataFiltered] = useState<DBConfig[]>([]);
   const [dbLoading, setDbLoading] = useState(false);
   const [dbError, setDbError] = useState<string | null>(null);
-
+  const [searched, setSearched] = useState(false);
   //pagination
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
   const [totalPages, setTotalPages] = useState(6);
-  
+
   //  input changes
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -98,17 +99,28 @@ const ConfigManagent: React.FC = () => {
     }
   };
 
-  const fetchData = async () => {
+  const fetchData = async (paged = true) => {
     setDbLoading(true); // start loading
     setDbError(null); // clear previous errors
     try {
-      const response = await axios.get<PagedResponse<DBConfig>>(
-        `${VITE_API_URL}/config/db/find-by-page/${currentPage}/${itemsPerPage}`
+      const response = await axios.get(
+        paged
+          ? `${VITE_API_URL}/config/db/find-by-page/${currentPage}/${itemsPerPage}`
+          : `${VITE_API_URL}/config/db/find-all`
       );
-      setDbData(response.data.data);
-      setDbDataFiltered(response.data.data);
-      setTotalPages(response.data.totalItems % itemsPerPage === 0 ? response.data.totalItems / itemsPerPage : Math.floor(response.data.totalItems / itemsPerPage) + 1);
-      
+
+      if (!paged) {
+        setAllDbData(response.data);
+        setDbDataFiltered(response.data);
+      } else {
+        setDbData(response.data.data);
+        // setDbDataFiltered(response.data.data);
+        setTotalPages(
+          response.data.totalItems % itemsPerPage === 0
+            ? response.data.totalItems / itemsPerPage
+            : Math.floor(response.data.totalItems / itemsPerPage) + 1
+        );
+      }
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
         const errorMessage = "An unknown error occurred.";
@@ -131,10 +143,16 @@ const ConfigManagent: React.FC = () => {
       setDbLoading(false); // stop loading
     }
   };
-
-  
+  if (dbError) {
+    Swal.fire({
+      title: "The Internet?",
+      text: "Check your internet connection and try again",
+      icon: "question",
+    });
+  }
   useEffect(() => {
-    fetchData(); // fetch data when page loads
+    fetchData();
+    fetchData(false); // fetch data when page loads
   }, [currentPage]);
 
   const handleDelete = async (id: number | undefined) => {
@@ -192,8 +210,13 @@ const ConfigManagent: React.FC = () => {
   };
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.value === "") {
+      setSearched(false);
+    } else {
+      setSearched(true);
+    }
     setDbDataFiltered(
-      dbData.filter((item) =>
+      dbAllData.filter((item) =>
         item.databaseName.toLowerCase().includes(e.target.value.toLowerCase())
       )
     );
@@ -327,11 +350,7 @@ const ConfigManagent: React.FC = () => {
                 Submit
               </button>
             </form>
-            {dbLoading && (
-              <div className="m-2">
-                <Loader />
-              </div>
-            )}
+
             {dbError && (
               <div
                 className="p-4 mb-4 text-sm text-yellow-800 rounded-lg bg-yellow-50 dark:bg-gray-800 dark:text-yellow-300"
@@ -354,9 +373,9 @@ const ConfigManagent: React.FC = () => {
                 required
               />
             </div>
-            {dbDataFiltered.length > 0 && (
+            {dbAllData.length > 0 && (
               <>
-                <div className="relative overflow-x-auto mt-4">
+                <div className="relative overflow-auto mt-4 h-90">
                   <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
                     <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                       <tr>
@@ -378,51 +397,86 @@ const ConfigManagent: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {dbDataFiltered.map((item) => (
-                        <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200">
-                          <th
-                            scope="row"
-                            className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
-                          >
-                            {item.databaseName}
-                          </th>
-                          <td className="px-6 py-4">{item.host}</td>
-                          <td className="px-6 py-4">{item.port}</td>
-                          <td className="px-6 py-4">{item.username}</td>
-                          <td className="px-6 pt-2">
-                            <button
-                              type="button"
-                              className="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900"
-                              onClick={() => handleDelete(item.id)}
-                            >
-                              Delete
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
+                      {searched
+                        ? dbDataFiltered.map((item) => (
+                            <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200">
+                              <th
+                                scope="row"
+                                className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
+                              >
+                                {item.databaseName}
+                              </th>
+                              <td className="px-6 py-4">{item.host}</td>
+                              <td className="px-6 py-4">{item.port}</td>
+                              <td className="px-6 py-4">{item.username}</td>
+                              <td className="px-6 pt-2">
+                                <button
+                                  type="button"
+                                  className="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900"
+                                  onClick={() => handleDelete(item.id)}
+                                >
+                                  Delete
+                                </button>
+                              </td>
+                            </tr>
+                          ))
+                        : dbData.map((item) => (
+                            <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200">
+                              <th
+                                scope="row"
+                                className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
+                              >
+                                {item.databaseName}
+                              </th>
+                              <td className="px-6 py-4">{item.host}</td>
+                              <td className="px-6 py-4">{item.port}</td>
+                              <td className="px-6 py-4">{item.username}</td>
+                              <td className="px-6 pt-2">
+                                <button
+                                  type="button"
+                                  className="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900"
+                                  onClick={() => handleDelete(item.id)}
+                                >
+                                  Delete
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
                     </tbody>
                   </table>
+                  {dbLoading && (
+                    <div className="absolute -translate-x-1/2 -translate-y-1/2 top-2/4 left-1/2">
+                      <Loader />
+                      <span className="sr-only">Loading...</span>
+                    </div>
+                  )}
                 </div>
-                <div className="flex justify-center mt-2">
-                <nav aria-label="Page navigation example">
-                  <ul className="inline-flex -space-x-px text-sm">
-                    {Array.from({ length: totalPages }, (_, index) => (
-                      <li key={index}>
-                        <button
-                          onClick={() => handlePageChange(index + 1)}
-                          className={`flex items-center justify-center px-3 h-8 leading-tight 
+                <div
+                  className={`flex justify-center mt-2 ${searched && "hidden"}`}
+                >
+                  <nav aria-label="Page navigation  ">
+                    <ul className="inline-flex -space-x-px text-sm">
+                      {Array.from({ length: totalPages }, (_, index) => (
+                        <li key={index}>
+                          <button
+                            onClick={() => handlePageChange(index + 1)}
+                            className={`flex items-center justify-center px-3 h-8 leading-tight 
                      text-gray-500 bg-white border border-gray-300 
                      hover:bg-gray-100 hover:text-gray-700 
-                          ${index === currentPage - 1 ? "dark:bg-gray-600" : "dark:bg-gray-800"} dark:border-gray-700 
+                          ${
+                            index === currentPage - 1
+                              ? "dark:bg-gray-600"
+                              : "dark:bg-gray-800"
+                          } dark:border-gray-700 
                      dark:text-gray-400 dark:hover:bg-gray-700 
                      dark:hover:text-white`}
-                        >
-                          {index + 1}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </nav>
+                          >
+                            {index + 1}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </nav>
                 </div>
               </>
             )}
