@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { FaAngleDown, FaMagnifyingGlass } from "react-icons/fa6";
 import axios from "axios";
 import Swal from "sweetalert2";
-import type { DBConfig } from "../types/config";
+import type { DBConfig, PagedResponse } from "../types/config";
 import { Loader } from "../components/Loader";
 
 const ConfigManagent: React.FC = () => {
@@ -21,6 +21,11 @@ const ConfigManagent: React.FC = () => {
   const [dbLoading, setDbLoading] = useState(false);
   const [dbError, setDbError] = useState<string | null>(null);
 
+  //pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+  const [totalPages, setTotalPages] = useState(6);
+  
   //  input changes
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -33,17 +38,19 @@ const ConfigManagent: React.FC = () => {
     }));
   };
 
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
   // form submitions
   const handleSubmit = async (
     e: React.FormEvent,
     type: "db" | "email" | "sms"
   ) => {
     e.preventDefault();
-    
- // set submit alert to initial state when submit this form
+
+    // set submit alert to initial state when submit this form
     setSubmitError({});
     try {
-
       const response = await axios.post(
         `${VITE_API_URL}/config/${type}/add`,
         config[type]
@@ -95,11 +102,13 @@ const ConfigManagent: React.FC = () => {
     setDbLoading(true); // start loading
     setDbError(null); // clear previous errors
     try {
-      const response = await axios.get<DBConfig[]>(
-        `${VITE_API_URL}/config/db/find-all`
+      const response = await axios.get<PagedResponse<DBConfig>>(
+        `${VITE_API_URL}/config/db/find-by-page/${currentPage}/${itemsPerPage}`
       );
-      setDbData(response.data);
-      setDbDataFiltered(response.data);
+      setDbData(response.data.data);
+      setDbDataFiltered(response.data.data);
+      setTotalPages(response.data.totalItems % itemsPerPage === 0 ? response.data.totalItems / itemsPerPage : Math.floor(response.data.totalItems / itemsPerPage) + 1);
+      
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
         const errorMessage = "An unknown error occurred.";
@@ -123,11 +132,11 @@ const ConfigManagent: React.FC = () => {
     }
   };
 
+  
   useEffect(() => {
     fetchData(); // fetch data when page loads
-  }, []);
+  }, [currentPage]);
 
-  
   const handleDelete = async (id: number | undefined) => {
     console.log(dbData);
     try {
@@ -137,9 +146,7 @@ const ConfigManagent: React.FC = () => {
       setDbDataFiltered((prevData) =>
         prevData.filter((item) => item.id !== id)
       );
-      setDbData((prevData) =>
-        prevData.filter((item) => item.id !== id)
-      );
+      setDbData((prevData) => prevData.filter((item) => item.id !== id));
       if (response.status === 202) {
         Swal.fire({
           title: "Database deleted",
@@ -195,12 +202,13 @@ const ConfigManagent: React.FC = () => {
   return (
     <>
       {Object.values(submitError).length > 0 &&
-        Object.entries(submitError).map(([key,value]) => (
+        Object.entries(submitError).map(([key, value]) => (
           <div
             className="p-4 ms-2 mb-1 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400"
             role="alert"
           >
-            <span className="font-medium">{key} : </span>{value}
+            <span className="font-medium">{key} : </span>
+            {value}
           </div>
         ))}
       <div id="accordion-collapse" data-accordion="collapse" className="ms-2">
@@ -394,6 +402,27 @@ const ConfigManagent: React.FC = () => {
                       ))}
                     </tbody>
                   </table>
+                </div>
+                <div className="flex justify-center mt-2">
+                <nav aria-label="Page navigation example">
+                  <ul className="inline-flex -space-x-px text-sm">
+                    {Array.from({ length: totalPages }, (_, index) => (
+                      <li key={index}>
+                        <button
+                          onClick={() => handlePageChange(index + 1)}
+                          className={`flex items-center justify-center px-3 h-8 leading-tight 
+                     text-gray-500 bg-white border border-gray-300 
+                     hover:bg-gray-100 hover:text-gray-700 
+                          ${index === currentPage - 1 ? "dark:bg-gray-600" : "dark:bg-gray-800"} dark:border-gray-700 
+                     dark:text-gray-400 dark:hover:bg-gray-700 
+                     dark:hover:text-white`}
+                        >
+                          {index + 1}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </nav>
                 </div>
               </>
             )}

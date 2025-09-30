@@ -16,3 +16,8 @@ export interface SmsConfig {
   apiKey: string;
   senderNumber: string;
 }
+
+export interface PagedResponse<DBConfig> {
+  data: DBConfig[];
+  totalItems: number;
+}
