@@ -242,15 +242,16 @@ const ConfigManagent: React.FC = () => {
   return (
     <>
       {Object.values(submitError).length > 0 &&
-        Object.entries(submitError).map(([key, value]) => (
+        Object.values(submitError).map((value, index) => (
           <div
+            key={index}
             className="p-4 ms-2 mb-1 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400"
             role="alert"
           >
-            <span className="font-medium">{key} : </span>
             {value}
           </div>
         ))}
+
       <div id="accordion-collapse" data-accordion="collapse" className="ms-2">
         <h2 id="accordion-collapse-heading-1">
           <button
@@ -287,7 +288,11 @@ const ConfigManagent: React.FC = () => {
                     className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                     placeholder="http://localhost"
                   />
-                  {submitError.host  && <p className="mt-2 text-sm text-red-600 dark:text-red-500"><span className="font-medium">Field is Invalid</span></p>}
+                  {submitError.host && (
+                    <p className="mt-2 text-sm text-red-600 dark:text-red-500">
+                      <span className="font-medium">Field is Invalid</span>
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label
@@ -304,7 +309,11 @@ const ConfigManagent: React.FC = () => {
                     className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                     placeholder="doe"
                   />
-                  {submitError.username  && <p className="mt-2 text-sm text-red-600 dark:text-red-500"><span className="font-medium">Field is Invalid</span></p>}
+                  {submitError.username && (
+                    <p className="mt-2 text-sm text-red-600 dark:text-red-500">
+                      <span className="font-medium">Field is Invalid</span>
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label
@@ -323,8 +332,11 @@ const ConfigManagent: React.FC = () => {
                     min={1024}
                     max={65535}
                   />
-                  {submitError.port  && <p className="mt-2 text-sm text-red-600 dark:text-red-500"><span className="font-medium">Field is Invalid</span></p>}
-                 
+                  {submitError.port && (
+                    <p className="mt-2 text-sm text-red-600 dark:text-red-500">
+                      <span className="font-medium">Field is Invalid</span>
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label
@@ -341,7 +353,11 @@ const ConfigManagent: React.FC = () => {
                     className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                     minLength={8}
                   />
-                  {submitError.password && <p className="mt-2 text-sm text-red-600 dark:text-red-500"><span className="font-medium">Field is Invalid</span></p>}
+                  {submitError.password && (
+                    <p className="mt-2 text-sm text-red-600 dark:text-red-500">
+                      <span className="font-medium">Field is Invalid</span>
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label
@@ -358,7 +374,11 @@ const ConfigManagent: React.FC = () => {
                     className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                     placeholder="mydb"
                   />
-                  {submitError.databaseName && <p className="mt-2 text-sm text-red-600 dark:text-red-500"><span className="font-medium">Field is Invalid</span></p>}
+                  {submitError.databaseName && (
+                    <p className="mt-2 text-sm text-red-600 dark:text-red-500">
+                      <span className="font-medium">Field is Invalid</span>
+                    </p>
+                  )}
                 </div>
               </div>
               <button
