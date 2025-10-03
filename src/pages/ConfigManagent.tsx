@@ -22,6 +22,7 @@ const ConfigManagent: React.FC = () => {
   const [dbLoading, setDbLoading] = useState(false);
   const [dbError, setDbError] = useState<string | null>(null);
   const [searched, setSearched] = useState(false);
+  const [checkedDBList, setCheckedDBList] = useState<number[]>([]);
   //pagination
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
@@ -156,7 +157,6 @@ const ConfigManagent: React.FC = () => {
   }, [currentPage]);
 
   const handleDelete = async (id: number | undefined) => {
-    console.log(dbData);
     try {
       const response = await axios.delete(
         `${VITE_API_URL}/config/db/delete/${id}`
@@ -165,6 +165,8 @@ const ConfigManagent: React.FC = () => {
         prevData.filter((item) => item.id !== id)
       );
       setDbData((prevData) => prevData.filter((item) => item.id !== id));
+      setAllDbData((prevData) => prevData.filter((item) => item.id !== id));
+      setCheckedDBList((prevData) => prevData.filter((item) => item !== id));
       if (response.status === 202) {
         Swal.fire({
           title: "Database deleted",
@@ -209,6 +211,15 @@ const ConfigManagent: React.FC = () => {
     }
   };
 
+  const handleDeleteAll = () => {
+    if (checkedDBList.length > 0) {
+      checkedDBList.forEach((id) => {
+        handleDelete(id);
+      });
+      setCheckedDBList([]);
+    }
+  };
+  console.log(checkedDBList);
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.value === "") {
       setSearched(false);
@@ -219,6 +230,13 @@ const ConfigManagent: React.FC = () => {
       dbAllData.filter((item) =>
         item.databaseName.toLowerCase().includes(e.target.value.toLowerCase())
       )
+    );
+  };
+
+  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const id = Number(e.target.value);
+    setCheckedDBList((prev) =>
+      e.target.checked ? [...prev, id] : prev.filter((item) => item !== id)
     );
   };
 
@@ -394,6 +412,9 @@ const ConfigManagent: React.FC = () => {
                         <th scope="col" className="px-6 py-3">
                           Action
                         </th>
+                        <th scope="col" className="px-6 py-3">
+                          Select
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
@@ -418,6 +439,16 @@ const ConfigManagent: React.FC = () => {
                                   Delete
                                 </button>
                               </td>
+                              <td>
+                                <input
+                                  id={`checkbox- ${item.id}`}
+                                  type="checkbox"
+                                  value={item.id}
+                                  checked={checkedDBList.includes(item.id)}
+                                  onChange={handleCheckboxChange}
+                                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-sm focus:ring-blue-500"
+                                />
+                              </td>
                             </tr>
                           ))
                         : dbData.map((item) => (
@@ -440,10 +471,23 @@ const ConfigManagent: React.FC = () => {
                                   Delete
                                 </button>
                               </td>
+                              <td className="px-6 py-4">
+                                <input
+                                  onChange={(e) => handleCheckboxChange(e)}
+                                  id={`checkbox- ${item.id}`}
+                                  type="checkbox"
+                                  checked={checkedDBList.includes(item.id)}
+                                  value={item.id}
+                                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-sm
+                                 focus:ring-blue-500 dark:focus:ring-blue-600 
+                                 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                                />
+                              </td>
                             </tr>
                           ))}
                     </tbody>
                   </table>
+
                   {dbLoading && (
                     <div className="absolute -translate-x-1/2 -translate-y-1/2 top-2/4 left-1/2">
                       <Loader />
@@ -451,6 +495,17 @@ const ConfigManagent: React.FC = () => {
                     </div>
                   )}
                 </div>
+                <div className="flex justify-end mt-2">
+                  <button
+                    type="button"
+                    className="text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900"
+                    onClick={handleDeleteAll}
+                    hidden={checkedDBList.length === 0}
+                  >
+                    Delete Selected
+                  </button>
+                </div>
+
                 <div
                   className={`flex justify-center mt-2 ${searched && "hidden"}`}
                 >
