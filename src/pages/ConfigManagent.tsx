@@ -49,7 +49,6 @@ const ConfigManagent: React.FC = () => {
     type: "db" | "email" | "sms"
   ) => {
     e.preventDefault();
-
     // set submit alert to initial state when submit this form
     setSubmitError({});
     try {
@@ -287,8 +286,8 @@ const ConfigManagent: React.FC = () => {
                     id="host"
                     className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                     placeholder="http://localhost"
-                    required
                   />
+                  {submitError.host  && <p className="mt-2 text-sm text-red-600 dark:text-red-500"><span className="font-medium">Field is Invalid</span></p>}
                 </div>
                 <div>
                   <label
@@ -304,8 +303,8 @@ const ConfigManagent: React.FC = () => {
                     id="username"
                     className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                     placeholder="doe"
-                    required
                   />
+                  {submitError.username  && <p className="mt-2 text-sm text-red-600 dark:text-red-500"><span className="font-medium">Field is Invalid</span></p>}
                 </div>
                 <div>
                   <label
@@ -321,10 +320,11 @@ const ConfigManagent: React.FC = () => {
                     id="port"
                     className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                     placeholder="3306"
-                    required
                     min={1024}
                     max={65535}
                   />
+                  {submitError.port  && <p className="mt-2 text-sm text-red-600 dark:text-red-500"><span className="font-medium">Field is Invalid</span></p>}
+                 
                 </div>
                 <div>
                   <label
@@ -339,9 +339,9 @@ const ConfigManagent: React.FC = () => {
                     type="password"
                     id="password"
                     className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                    required
                     minLength={8}
                   />
+                  {submitError.password && <p className="mt-2 text-sm text-red-600 dark:text-red-500"><span className="font-medium">Field is Invalid</span></p>}
                 </div>
                 <div>
                   <label
@@ -357,8 +357,8 @@ const ConfigManagent: React.FC = () => {
                     id="databaseName"
                     className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                     placeholder="mydb"
-                    required
                   />
+                  {submitError.databaseName && <p className="mt-2 text-sm text-red-600 dark:text-red-500"><span className="font-medium">Field is Invalid</span></p>}
                 </div>
               </div>
               <button
